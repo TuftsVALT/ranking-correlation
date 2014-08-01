@@ -1,0 +1,571 @@
+<style>
+
+#main table {
+	margin: 0 auto 0 auto;
+}
+
+.axis line, .axis path {
+	shape-rendering: crispEdges;
+	stroke: black;
+	fill: none;
+}
+
+.correct {
+  font-weight: bold;
+  font-size: 1.5em;
+  color: green;
+}
+
+.ans {
+  font-weight: bold;
+  font-size: 1.5em;
+  color: gray;
+}
+
+.incorrect {
+  font-weight: bold;
+  font-size: 1.5em;
+  color: red;
+}
+
+#feedback-left {
+  font-size:.9em;
+}
+
+#feedback-right {
+  font-size:.9em;
+}
+#run-end {
+  margin-top: 64px;
+}
+
+#module-end {
+  margin-top: 64px;
+}
+
+#next-run {
+  margin-top: 64px;
+}
+
+</style>
+<meta charset="utf-8">
+<div>
+  <h2> Practice </h2>
+
+  <h5> 
+    Section <span id="status"></span>, Run <span id="runstatus"></span>, Trial <span id="trialstatus"></span> 
+  </h5>
+
+	<p>
+    This is the practice section. Please select the visualization that appears to have the largest correlation. (This may be quite difficult, but try your best!) 
+  </p>
+  <p id="choiceIntr">
+    You can either click the buttons (A or B) or use the ‚◀ or ▶ keys. 
+  </p>
+    After you make a choice, we will reveal the correct answer before moving to the next pair. 
+	</p>
+	<p>
+    There will be two "runs" of 15 trials.
+	</p>
+
+<div id="table"></div>
+
+	<div id='run-end' style='display:none'>
+    <p>
+      This run is complete. There is <span id="remaining"></span> run to go.  
+    </p>
+    <p>
+      The next run will be more difficult, but try your best! The main task will contain a mixture of four "hard" and "easy" runs.
+    <p>
+      Take a break if you need one, then click "Next Run" to proceed.
+    </p>
+    <p>
+      <button id="next-run" type="button">Next Run</button>
+    </p>
+	</div>
+
+	<div id='module-end' style='display:none'>
+    <p>
+	    Thank you! The practice trials are complete. 
+    </p>
+    <p>
+      <strong>The next part is the main task. You will have 4 rounds that last up to 50 trials each (they will stop early if we have enough data).</strong>
+    </p>
+    <p>
+      <strong>Each round will take 2-5 minutes. You will be able to take a short break after each round.</strong>
+    </p>
+    <p>
+      Please click next when you are ready to proceed.
+    </p>
+	</div>
+</div>
+
+<script>
+(function() {
+  experimentr.startTimer('practice');
+	var data = {}  // holds data we will send to server
+	  , m    = {}  // holds variables for this module (not sent to server)
+    , factor = 1;
+
+  // get direction 
+  m.rdirection = experimentr.data().rdirection;
+  // get visualization 
+  m.visualizationType = experimentr.data().visualizationType;  
+  // set sign (used to control visualizations/text)
+  m.sign = m.rdirection === 'negative' ? -1 : 1;
+  // allow violate signs or not
+  data.allowViolate = true;
+  // make r-value condition choice
+  data.rcondition = "five"; // three, four, five
+
+  // define practice trials
+  if(data.rcondition === 'three')
+    m.runs = [ { rbase: 0.6, dirFlag: -1 }, { rbase: 0.3, dirFlag: 1 } ];
+  else if (data.rcondition === 'five')
+    m.runs = [ { rbase: 0.8, dirFlag: -1 }, { rbase: 0.5, dirFlag: 1 } ];
+  else if (data.rcondition === 'four')
+    m.runs = [ { rbase: 0.7, dirFlag: -1 }, { rbase: 0.4, dirFlag: 1 } ];
+
+  // add additional properties for experiment run
+  m.runs.forEach(function(d) {
+    d.startDelta = 0.1;
+    d.deltaRight = 0.01;
+    d.deltaWrong = 0.03;
+    d.maxTrials  = 15;
+    d.trialName  = 'practice';
+  });
+
+  // add runs data
+  data.runs = m.runs;
+  experimentr.addData(data);
+
+  // init runCount
+  m.runCount = 0;
+
+  initTable(); // init the frame of vis - buttons - ans - feedback table
+  
+  // begin experiment
+  init(m.runs[m.runCount]);
+
+  function init(params) {
+    // these "globals" are used throughout the run and are sent to the server
+    data.rbase      = params.rbase || 0.8; // everyone gets the same training
+    data.startDelta = params.startDelta || 0.1;
+    data.deltaRight = params.deltaRight || 0.01;
+    data.deltaWrong = params.deltaWrong || 0.03;
+    data.dirFlag    = params.dirFlag || (Math.random() > 0.5 ? 1 : -1);
+    data.trialName  = (params.trialName + '_' + m.runCount) 
+      || 'trial_' + (Math.floor( Math.random() * 100 )); // random number if no name specified
+    data.maxTrials  = params.maxTrials || 50;
+    data.direction  = data.dirFlag === 1 ? 'above' : 'below';
+    data.trials     = [];
+    data.JND        = null;
+
+    // ct is short for "current trial". Store data here for each trial.
+    m.ct = {}; 
+    // starting delta
+    m.delta = data.startDelta;
+    // other variables for experiment control
+    m.count = 0;
+    m.keyboardAllowed = true;
+    m.debug = false; 
+    // hide next until main is over
+    experimentr.hideNext();
+    // show status (N/N.length) at top
+    d3.select('#status').text(experimentr.status());
+    // setup interaction and begin trials
+    setupInteraction();
+    enableInteraction();
+    nextTrial();  
+  }
+
+  function setupInteraction() {
+    // mouse interaction
+    d3.select('#leftChoice').on('click', function() {
+      m.ct.currentChoice = 'L';
+      gradeTrial();
+    });
+    d3.select('#rightChoice').on('click', function() {
+      m.ct.currentChoice = 'R';
+      gradeTrial();
+    });
+    // keyboard interaction
+    d3.select('body').on('keydown', function() {
+      if( (d3.event.keyCode === experimentr.data().keyCode.left || d3.event.keyCode === 65) && m.keyboardAllowed) {
+        m.ct.currentChoice = 'L';
+        gradeTrial();
+      }
+      if( (d3.event.keyCode === experimentr.data().keyCode.right || d3.event.keyCode === 67) && m.keyboardAllowed) {
+        m.ct.currentChoice = 'R';
+        gradeTrial();
+      }
+    });
+  }
+
+  function initTable(){
+	  // align of the table
+	  var align = experimentr.data().align;
+	  
+	  // get the frame array
+	  m.tableStructure = experimentr.data().tableStructure;
+	  
+	  // add the instruction for arrow keys that subjects can hit ▲▼ or ▶◀
+	  d3.select("#choiceIntr").html(experimentr.data().trialText)
+	   
+	  // add table
+		var table = d3.select("#table")
+		    .append("table")
+		    .attr('align', align)
+		    .attr('id' , "table_main");
+	  // add table body
+	  var tbody = table.append("tbody");
+	  // create a row for each object in the data
+	  var rows = tbody.selectAll("tr")
+	    .data(m.tableStructure)
+	    .enter().append("tr");
+	  // create a cell in each row for each column
+	  var cells = rows.selectAll("td")
+	      .data(function(d) { return d; })
+	      .enter().append("td")
+	        .attr('id', function(d) { return d;})
+	      
+	    // add buttons
+	    d3.select("#left-button")
+	      .attr('align' , align)
+	    .append("button")
+	      .attr('id', "leftChoice")
+	      .attr('type', "button").html("A");
+	    
+	    d3.select("#right-button")
+	      .attr('align' , align)
+	    .append("button")
+	      .attr('id', "rightChoice")
+	      .attr('type', "button").html("B");
+  }
+  
+  function nextTrial() {
+	  experimentr.startTimer(data.trialName + '-' + m.count);
+    // set trial number on screen
+    d3.select('#trialstatus').text( ( (m.count+1) + '/' + data.maxTrials) );
+    d3.select('#runstatus').text( ( (m.runCount+1) + '/' + m.runs.length) );
+    // r1 is our starting r, r2 depends on our starting r, flag, and delta
+	  var r1 = data.rbase
+      , r2 = data.rbase + data.dirFlag * m.delta
+    // update delta if people hit the ceiling (in case of accidental wrong hit or stupid)
+    if(r2 - 1 > 0) {
+      r2 = 1;
+      m.delta = Math.abs(r1 - r2);
+    }
+    // if delta below 0 is not allowed, keep r2 at 0
+    if(!data.allowViolate && r1 * r2 < 0)
+      r2 = 0;
+    // record r1 and r2
+    m.ct.rtarget   = r1;
+    m.ct.rvariable = r2;
+    // swap r1 and r2 at random before displaying (originals recorded in m.currentTrial
+    // Note: this swap can't be done before recording r1 and r2 in currentTrial
+    if( Math.random() > 0.5) { var tmp = r1; r1 = r2; r2 = tmp; }
+    // record correct choice (after swap)
+    m.ct.correctChoice = (r1 - r2) > 0 ? 'L' : 'R';
+    // debug message
+    if(m.debug) console.log('current comparison: left: '+ r1 +', right: '+ r2 +" ,approach : " + data.direction);
+    // render r1 and r2 (left and right, respectively)
+	  display(r1, r2);
+  }
+
+  function gradeTrial() {
+    experimentr.endTimer(data.trialName + '-' + m.count);
+    // see if current choice and correct choice match
+    m.ct.gotItRight = (m.ct.currentChoice === m.ct.correctChoice);
+    // add current delta to our trial data before updating
+    m.ct.delta = m.delta
+    // update delta based on correct response (0.12 because Lane doesn't float)
+	if (m.ct.gotItRight) 
+      m.delta = (m.delta > 0.012 * factor) ? m.delta - data.deltaRight * factor : m.delta;
+	else
+	  m.delta = m.delta + data.deltaWrong * factor;
+    // record trial index
+    m.ct.index = m.count;
+    // debug message
+    if(m.debug) console.log(m.ct.gotItRight);
+	  // when count reaches 23 (24 total trials) begin checking variance
+    if(m.count > 22) checkVariance();
+    // store trial data
+    data.trials.push(m.ct);
+	  // after checking variance, if the participant has already finished 
+    // 50 trials or "fobs" is < 0.25, end
+    // otherwise show feedback and begin next trial
+    if(data.fobs < 0.25 || m.count === data.maxTrials - 1) {
+      showFeedback(m.ct.gotItRight, m.ct.correctChoice);
+      setTimeout(function() { 
+        hideFeedback();
+        end();
+      }, 3500); 
+    } else {
+      showFeedback(m.ct.gotItRight, m.ct.correctChoice);
+      // remove feedback and begin next trial after a few seconds
+      var wait = m.count === 0 ? 3000 : 1500;
+      setTimeout(function() { 
+        hideFeedback();
+        m.count++;
+        m.ct = {};
+        nextTrial();
+      }, wait); 
+    }
+  }
+
+  function hideFeedback() {
+    // enable input
+    m.keyboardAllowed = true;
+    d3.select('#leftChoice').attr('disabled', null);
+    d3.select('#rightChoice').attr('disabled', null);
+    // remove feedback text
+    d3.select('#feedback-left').html("");
+    d3.select('#feedback-right').html("");
+    //remove solution glyphs
+    d3.select('#slt-left').html("")
+    d3.select('#slt-right').html("")
+    //remove answer glyphs 
+    d3.select('#ans-left').html("")
+    d3.select('#ans-right').html("")
+  }
+
+  function showFeedback(gotItRight, correct) {
+    // disable input
+    m.keyboardAllowed = false;
+    d3.select('#leftChoice').attr('disabled', true);
+    d3.select('#rightChoice').attr('disabled', true);
+    
+    //feedback content , make them in similar length
+    var textRight = "Correct! We'll make them more similar next time."
+      , textWrong = "Missed this! We'll make them more different next time.";
+    
+    // feedback text
+    if(gotItRight) {
+      var hit = (correct === 'L') ? 'left' : 'right';
+      // text, align to the right ans
+      d3.select('#feedback-' + hit)
+        .html(textRight).attr('align', 'center');
+      // show the participant's ans
+      d3.select('#ans-' + hit)
+        .html('〇').attr('class', 'ans').attr('align', 'center');
+      // show the correct one
+      d3.select('#slt-' + hit)
+        .html('√').attr('class', 'correct').attr('align', 'center');
+    } else {
+      var hit  = (correct === 'L') ? 'right' : 'left'
+        , miss = (correct === 'L') ? 'left' : 'right';
+      // text align to the incorrect ans       
+      d3.select('#feedback-' + miss)
+        .html(textWrong).attr('align', 'center');
+      // show the participant's ans
+      d3.select('#ans-' + hit)
+        .html('〇').attr('class', 'ans').attr('align', 'center');
+      // show the correct one
+      d3.select('#slt-' + hit)
+        .html('×').attr('class', 'incorrect').attr('align', 'center');
+      // show the incorrect one
+      d3.select('#slt-' + miss)
+        .html('√').attr('class', 'correct').attr('align', 'center');
+    } 
+  }
+
+  function checkVariance() {
+    if(m.debug) console.log('checking variance');
+    // get all deltas so far 
+    var deltarr = data.trials.map(function(d) { return d.delta; });
+    // include current delta
+    deltarr.push(m.ct.delta);
+    // Follow Rensink's "F-test"
+    var sub1      = deltarr.slice(m.count - 23, m.count - 15)
+      , sub2      = deltarr.slice(m.count - 15, m.count - 7)
+      , sub3      = deltarr.slice(m.count - 7, m.count + 1)
+	    , var1      = gen.variance(sub1) 
+	    , var2      = gen.variance(sub2)
+	    , var3      = gen.variance(sub3)
+	    , avg1      = gen.aver(sub1)
+	    , avg2      = gen.aver(sub2)
+	    , avg3      = gen.aver(sub3)
+      , varAvgSub = gen.variance([avg1, avg2, avg3])
+      , avgVarSub = gen.aver([var1, var2, var3]);
+    // jnd is the average of the average deltas
+    m.ct.jnd = data.JND = gen.aver([avg1, avg2, avg3]);
+    // fobs is the variance of the averages over the average of the variances
+    m.ct.fobs = data.fobs = (varAvgSub / avgVarSub);
+    // Several debug messages needed here
+    if(m.debug) console.log('current deltarr: '+deltarr);
+    if(m.debug) console.log('sub1: '+ sub1);
+    if(m.debug) console.log('sub2: '+ sub2);
+    if(m.debug) console.log('sub3: '+ sub3);
+    if(m.debug) console.log('aver1-3: '+ avg1 + " , " + avg2 + " , " + avg3);
+    if(m.debug) console.log('var1-3: '+ var1 + " , " + var2 + " , " + var3);
+    if(m.debug) console.log('current varAvgSub: '+varAvgSub);
+    if(m.debug) console.log('current avgVarSub: '+avgVarSub);
+    if(m.debug) console.log('current JND: '+data.JND);
+    if(m.debug) console.log('current fobs: '+data.fobs);
+    if(m.debug) console.log('current trial (ct): '+m.ct);
+  }
+
+  function end() {
+    disableInteraction();
+    storeRunData();
+    // if no more runs, end; otherwise, start next.
+    if(m.runCount === m.runs.length - 1) {
+      // remove visualizations to make space
+      d3.select('#table_main').remove();
+      // show end message
+      d3.select('#module-end').style('display', 'block');
+      // enable next button
+      experimentr.release();
+      // log time
+      experimentr.endTimer('practice');
+      // un-hide next button
+      experimentr.showNext();
+    } else {
+      // hide vis table
+      d3.select('#table_main').style('display', 'none');
+      // update runs remaining data
+      d3.select('#remaining').text( (m.runs.length - (m.runCount+1)) );
+      // show end of run message
+      d3.select('#run-end').style('display', 'block');
+      // on click, start next run
+      d3.select('#run-end').select('button').on('click', function() {
+        // increase run count
+        m.runCount++;
+        // start next run
+        init(m.runs[m.runCount]);
+        // remove run end
+        d3.select('#run-end').style('display', 'none');
+        // show vis table again
+        d3.select('#table_main').style('display', 'block');
+      });
+    }
+  }
+
+  function enableInteraction() {
+    m.keyboardAllowed = true;
+    d3.select('#leftChoice').attr('disabled', null);
+    d3.select('#rightChoice').attr('disabled', null);
+  }
+
+  function disableInteraction() {
+    m.keyboardAllowed = false;
+    d3.select('#leftChoice').attr('disabled', true);
+    d3.select('#rightChoice').attr('disabled', true);
+  }
+
+  // store module data in object with the trial name e.g. {"main": data}
+  function storeRunData() {
+    var tmp = {};
+    tmp[data.trialName] = data;
+    experimentr.addData(tmp);
+    data = {};
+  }
+	
+  function display(rL, rR) {
+    // remove current visualizations
+    d3.select('#vis-left').selectAll('svg').remove();
+    d3.select('#vis-right').selectAll('svg').remove();
+    // create datasets
+	  var data1 = gen.getCorrelatedData({ r: m.sign * rL, n: 100, extent: 300 })
+      , data2 = gen.getCorrelatedData({ r: m.sign * rR, n: 100, extent: 300 });
+    // create vis parameters
+    var paramsLeft = {
+        target: "vis-left", 
+        data: gen.dataviz(data1), 
+        extent: 300, 
+        pSize: 1.5, 
+        alpha: .5 }
+      , paramsRight = {
+        target: "vis-right", 
+        data: gen.dataviz(data2), 
+        extent: 300, 
+        pSize: 1.5, 
+        alpha: .5
+      };
+    // create / render visualizations, bounding boxes are returned
+    switch(m.visualizationType) {
+        case "scatterplot_lines":
+            paramsLeft.showline = paramsRight.showline = 'true';
+	        var boxL = vismethods.getScatterPlot(paramsLeft)
+	          , boxR = vismethods.getScatterPlot(paramsRight);
+          // Check if r's were swapped (if the left r value matches rtarget, 
+          // there was no switch). Store boxes accordingly.
+          m.ct.rtarget_box = (rL === m.ct.rtarget) ? boxL : boxR;
+          m.ct.rvariable_box = (rL === m.ct.rtarget) ? boxR : boxL;    
+          break;
+        case "scatterplot":
+	        var boxL = vismethods.getScatterPlot(paramsLeft)
+	          , boxR = vismethods.getScatterPlot(paramsRight);
+          // Check if r's were swapped (if the left r value matches rtarget, 
+          // there was no switch). Store boxes accordingly.
+          m.ct.rtarget_box = (rL === m.ct.rtarget) ? boxL : boxR;
+          m.ct.rvariable_box = (rL === m.ct.rtarget) ? boxR : boxL;    
+          break;
+        case "parallelCoordinates":
+	        vismethods.getParaCoord(paramsLeft);
+	        vismethods.getParaCoord(paramsRight);
+          break;
+        case "stackedbar":
+          paramsLeft.order = paramsRight.order = 0;
+          paramsLeft.stack = paramsRight.stack = 'stacked';
+          paramsLeft.alpha = paramsRight.alpha = 0.9;
+	      vismethods.getBarChart(paramsLeft);
+	      vismethods.getBarChart(paramsRight);
+          break;
+        case "stackedline":
+          paramsLeft.order = paramsRight.order = 0;
+          paramsLeft.stack = paramsRight.stack = 'stacked';
+          paramsLeft.alpha = paramsRight.alpha = 0.9;
+	        vismethods.getLineChart(paramsLeft);
+	        vismethods.getLineChart(paramsRight);
+          break;
+        case "stackedarea":
+          paramsLeft.order = paramsRight.order = 0;
+          paramsLeft.stack = paramsRight.stack = 'stacked';
+          paramsLeft.alpha = paramsRight.alpha = 0.9;
+          paramsLeft.filled = paramsRight.filled = 'true';
+	        vismethods.getLineChart(paramsLeft);
+	        vismethods.getLineChart(paramsRight);
+          break;
+        case "line":
+          paramsLeft.stack = paramsRight.stack = 'regular';
+          paramsLeft.order = paramsRight.order = 0;
+          paramsLeft.alpha = paramsRight.alpha = 0.9;
+	        vismethods.getLineChart(paramsLeft);
+	        vismethods.getLineChart(paramsRight);
+          break;
+        case "ordered_line":
+          paramsLeft.stack = paramsRight.stack = 'regular';
+          paramsLeft.order = paramsRight.order = 1;
+          paramsLeft.alpha = paramsRight.alpha = 0.9;
+	        vismethods.getLineChart(paramsLeft);
+	        vismethods.getLineChart(paramsRight);
+          break;
+        case "radar_oneline":
+          paramsLeft.oneline = paramsRight.oneline = 'true';
+          paramsLeft.uniformAxis = 'false',
+  	      vismethods.getRadar(paramsLeft);
+  	      vismethods.getRadar(paramsRight);
+          break;
+        case "radar":
+          paramsLeft.order = paramsRight.order = 0;
+          paramsLeft.alpha = paramsRight.alpha = 0.9;
+	        vismethods.getRadar(paramsLeft);
+	        vismethods.getRadar(paramsRight);
+          break;	    
+        case "donut":
+        	paramsLeft.stack  = paramsRight.stack = 'stacked';
+          vismethods.getDonut(paramsLeft); 
+          vismethods.getDonut(paramsRight); 
+          break;
+        case "donut":
+          paramsLeft.order = paramsRight.order = 0;
+          paramsLeft.stack = paramsRight.stack = 'regular';
+	        vismethods.getDonut(paramsLeft);
+	        vismethods.getDonut(paramsRight);
+          break;
+    }
+  }
+}());
+</script>

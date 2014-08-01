@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+
+<meta charset="utf-8">
+<title>Welcome to our survey</title>
+
+<script src="components/d3js/d3.v3.min.js"></script> 
+<script src="modules/generate.browser.js"></script>
+<script src="experimentr.js"></script>
+<script src="modules/vis.js"></script>
+<script src="util.js"></script>
+
+<style>
+
+strong {
+  color: red;
+} 
+
+body {
+  margin: 5% auto 5% auto;
+  width: 940px;
+}
+
+#experimentr {
+  margin: 5% auto 20% auto;
+  width: 720px;
+}
+
+#control {
+  margin-top: 5%;
+}
+
+#next-button {
+  float: right;
+}
+
+</style>
+
+<body></body>
+
+<script>
+
+var w   = screen.width
+  , h   = screen.height
+  , gen = require('modules/generate.js');
+ 
+// block if mobile, else start experiment
+if ( isMobile.any() )
+	showMobileBan();
+else
+  experimentr.sequence([
+	  'modules/JND/consent.html', 
+ 	  'modules/JND/training.html', 
+ 	  'modules/JND/practice.html', 
+	  'modules/JND/trials.html', 
+	  'modules/JND/demographics.html',
+	  'modules/JND/debrief.html'
+	]).start();   
+
+</script>

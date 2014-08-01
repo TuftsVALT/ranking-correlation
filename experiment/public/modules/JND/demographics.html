@@ -1,0 +1,160 @@
+
+<div id="demographics">
+<h5> <span id="status"></span> </h5>
+<p id="demoinstr">
+Thank you! The experiment is almost complete. Please fill out the following demographics form.
+</p>
+
+<div id="age">Your age:
+    <div id="ages">
+        <input type="radio" id="a1" name="age" value="18-25"> 18-25
+        <input type="radio" id="a2" name="age" value="25-39"> 25-39
+        <input type="radio" id="a3" name="age" value="40-49"> 40-49
+        <input type="radio" id="a4" name="age" value="50-59"> 50-59
+        <input type="radio" id="a5" name="age" value="60+"> 60+
+        <input type="radio" id="a6" name="age" value="Unspecified"> Unspecified
+    </div>
+</div>
+<br>
+<div id="sex">Your gender:
+    <div id="sexes">
+        <input type="radio" id="s1" name="sex" value="Male"> Male
+        <input type="radio" id="s2" name="sex" value="Female"> Female
+        <input type="radio" id="s3" name="sex" value="Unspecified"> Unspecified
+    </div>
+</div>
+<br>
+<div id="handed">Are you left or right handed:
+    <div id="handedness">
+        <input type="radio" id="s1" name="handed" value="Right"> Right
+        <input type="radio" id="s2" name="handed" value="Left"> Left
+        <input type="radio" id="s3" name="handed" value="Unspecified"> Unspecified
+    </div>
+</div>
+<br>
+<div id="degree">Highest degree obtained:
+    <div id="degrees">
+        <input type="radio" id="d1" name="degree" value="High School"> High School
+        <input type="radio" id="d2" name="degree" value="Bachelors"> Bachelors
+        <input type="radio" id="d3" name="degree" value="Masters"> Masters
+        <input type="radio" id="d4" name="degree" value="PhD"> PhD
+        <input type="radio" id="d5" name="degree" value="Other"> Other
+    </div>
+</div>
+<br>
+<div id="monitor">Your monitor size is closest to:
+    <div id="monitors">
+        <input type="radio" id="m4" name="monitor" value="9 or smaller"> 9" or smaller
+        <input type="radio" id="m4" name="monitor" value=11> 11"
+        <input type="radio" id="m4" name="monitor" value=13> 13"
+        <input type="radio" id="m4" name="monitor" value=15> 15"
+        <input type="radio" id="m4" name="monitor" value=17> 17"
+        <input type="radio" id="m4" name="monitor" value=19> 19"
+        <input type="radio" id="m4" name="monitor" value=21> 21"
+        <input type="radio" id="m5" name="monitor" value="23 or larger"> 23" or larger
+        <input type="radio" id="m5" name="monitor" value="dontknow"> I'm not sure
+    </div>
+</div>
+<br>
+<div id="visualizations">How familiar are you with visualizations like the one you saw here (1 not familiar at all, 5 very familiar)?
+    <div id="visualizationfam"> 
+        <input type="radio" id="sc1" name="visualizations" value=1> 1
+        <input type="radio" id="sc2" name="visualizations" value=2> 2
+        <input type="radio" id="sc3" name="visualizations" value=3> 3
+        <input type="radio" id="sc4" name="visualizations" value=4> 4
+        <input type="radio" id="sc5" name="visualizations" value=5> 5
+     </div>
+</div>
+
+<br>
+<div id="concept">How familiar are you with statistical concepts like Pearson'
+s correlation coefficient (1 not familiar at all, 5 very familiar)?
+    <div id="conceptfam"> 
+    <input type="radio" id="c1" name="concept" value=1> 1
+    <input type="radio" id="c2" name="concept" value=2> 2
+    <input type="radio" id="c3" name="concept" value=3> 3
+    <input type="radio" id="c4" name="concept" value=4> 4
+    <input type="radio" id="c5" name="concept" value=5> 5
+    </div>
+
+</div>
+
+<br>
+<div>Briefly describe the visual strategy you used to detect which chart was more correlated.
+  <br>
+<textarea id="strategy" name="textarea" rows="10" cols="50"></textarea>
+  <br>
+</div>
+
+<br>
+<div>Please leave any additional comments below.
+  <br>
+<textarea id="comments" name="textarea" rows="10" cols="50"></textarea>
+  <br>
+</div>
+
+<p>
+The next section will upload your data (this can a while!). Afterwards you will receive a code to paste back on Mechanical Turk. Hit next to continue.
+</p>
+
+</div>
+
+<script> 
+(function() {
+  var data = {};
+
+  experimentr.startTimer('demo');
+  d3.select('#status').text(experimentr.status());
+
+  d3.selectAll('input')
+  .filter(function(d) { return this.name === 'age' ? this : null; })
+  .on('change', function() { data.age = this.value; validate(); });
+  
+  d3.selectAll('input')
+  .filter(function(d) { return this.name === 'sex' ? this : null; })
+  .on('change', function() { data.sex = this.value; validate(); });
+
+  d3.selectAll('input')
+  .filter(function(d) { return this.name === 'handed' ? this : null; })
+  .on('change', function() { data.handed = this.value; validate(); });
+  
+  d3.selectAll('input')
+  .filter(function(d) { return this.name === 'degree' ? this : null; })
+  .on('change', function() { data.degree = this.value; validate(); });
+  
+  d3.selectAll('input')
+  .filter(function(d) { return this.name === 'monitor' ? this : null; })
+  .on('change', function() { data.monitor = this.value; validate(); });
+  
+  d3.selectAll('input')
+  .filter(function(d) { return this.name === 'visualizations' ? this : null; })
+  .on('change', function() { data.visualization_exp = this.value; validate(); });
+  
+  d3.selectAll('input')
+  .filter(function(d) { return this.name === 'concept' ? this : null; })
+  .on('change', function() { data.correlation_exp = this.value; validate(); });
+
+  var captureComments = function () { 
+    data.comments = this.value; validate(); 
+  }
+  d3.select('#comments')
+    .on('keyup', captureComments)
+    .on('blur', captureComments);
+
+  var captureStrategy = function () { 
+    data.strategy = this.value; validate(); 
+  }
+  d3.select('#strategy')
+    .on('keyup', captureStrategy)
+    .on('blur', captureStrategy);
+  
+  function validate() {
+	  if(data.age && data.sex && data.degree && data.monitor 
+	  		&& data.visualization_exp && data.correlation_exp) {
+	    experimentr.endTimer('demo');
+	    experimentr.addData(data);
+	    experimentr.release();
+	  }
+	}
+}());
+</script>

@@ -1,0 +1,93 @@
+<div id="consent">
+
+<h5> <span id="status"></span> </h5>
+<h1> Perceiving differences in correlation </h1>
+
+<p>
+This study will ask you to choose which visualization you believe has a <strong>larger</strong> correlation. 
+</p>
+
+<p>
+There will be a training section preceding the main task that covers the basics of correlation.
+The study takes approximately 15 minutes total (5 minutes training, 10 minutes main). 
+</p>
+
+<p>
+(Don't hit the back button during the study, since it will cause you to lose your progress!)
+</p>
+
+<p>
+Please enter your Amazon Worker ID. You may only complete this HIT <strong>once.</strong> Subsequent completions (e.g. taking this task twice) will not be accepted:
+</p>
+
+<p>
+<input type="text" id="workerId" name="workerId" disabled="true" size="30" />
+<button id="checkId" type="button">Check ID</button>
+</p>
+
+<span id="invalidMessage">
+Our records show that you have taken part in this study before, so we cannot allow you to take this HIT again at this time. Please contact us if you feel this is in error.
+</span>
+</p>
+
+<p>
+<button id="consentYes" disabled="true" type="button">Next</button>
+</p>
+
+</div>
+
+<style>
+  #invalidMessage {
+    display: none;
+    color: red;
+  }
+</style>
+
+<script>  
+
+(function() {
+  var data    = {}
+    , workers = null;
+
+  init();
+
+  function init() {
+    experimentr.startTimer('consent');
+    data.experimentId = "";
+
+    experimentr.hideNext();
+
+    d3.select('#status').text(experimentr.status());
+  
+    // load previous workers file
+    d3.json('modules/blocked-workers.json', function(err, d) {
+      workers = d;
+      d3.select('#workerId').attr('disabled', null);
+    });
+  
+    d3.selectAll('#workerId')
+      .on('keypress', function() { data.workerId = this.value; })
+      .on('blur', function() { data.workerId = this.value; });
+
+    d3.select('#consentYes').on('click', experimentr.next);
+
+    d3.select('#checkId').on('click', validate);
+  }
+
+  function validate() {
+    if( data.workerId ) {
+      experimentr.endTimer('consent');
+      experimentr.addData(data);
+      experimentr.save();
+      if( workers.indexOf(data.workerId) == -1 ) {
+        d3.select('#consentYes').attr('disabled', null);
+        experimentr.addData( {experimentType: 'JND'} );
+      } else {
+        d3.select('#invalidMessage').style('display', 'inline');
+      }
+    }
+  }
+	
+}());
+
+</script>

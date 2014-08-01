@@ -1,0 +1,56 @@
+<div id="debrief">
+<h5> <span id="status"></span> </h5>
+
+<div id="upload">
+  <h3>
+  Please wait-- uploading data. (This can take several minutes, depending on your internet speed). You will be given a survey completion code after the upload completes.
+  </h3>
+</div>
+
+<div id="paste" style='display:none'>
+<h3>
+  Upload Complete!
+</h3>
+<p>
+Thank you again for your participation. 
+</p>
+
+<strong>
+  Please copy and paste the following code back on Mechanical Turk before closing this window:
+</strong>
+
+<h3 id="postId"></h3>
+
+<p>
+This study was concerned with how well people process visual information in charts. 
+Previous studies have found people underestimate correlation in visualizations. 
+Your results will help us figure out why, which will allow us to design better charts in the future.
+</p>
+
+</div>
+
+</div>
+
+<style>
+</style>
+
+<script> 
+(function() {
+  var postId  = experimentr.postId
+    , data    = {};
+
+  experimentr.endTimer('experiment');
+
+  // update status
+  d3.select('#status').text(experimentr.status());
+
+  // update post id
+  d3.select("#postId").text(postId);
+
+  experimentr.save(function() {
+    d3.select('#upload').style('display', 'none');
+    d3.select('#paste').style('display', 'block');
+  });
+
+}());
+</script>

@@ -1,0 +1,277 @@
+<style>
+
+#practice table {
+	margin: 0 auto 0 auto;
+}
+
+.axis line,.axis path {
+	shape-rendering: crispEdges;
+	stroke: black;
+	fill: none;
+}
+
+circle {
+	fill: steelblack;
+}
+
+</style>
+
+<div>
+<h5> <span id="status"></span> </h5>
+
+<h2> What is correlation? </h2>
+
+<p>
+Correlation, roughly defined, is the degree to which two variables are related.
+Below are several examples of correlation. The larger the r value-- 0.0 (small) to 1 (large)-- the more correlated the data. 
+</p>
+
+<p id="rdescription">
+</p>
+
+<p>
+In the main task, you will be shown several pairs of charts and asked to choose which visualization appears <em>more correlated</em>.
+</p>
+
+<p>
+Please review the examples below, and hit next at the bottom when you're ready for a practice section.
+</p>
+
+<p>
+(If you are familiar with correlation already, note that we treat negative and positive correlation the same.)
+</p>
+ 
+<div id='examples'></div>
+
+</div>
+
+<script>
+(function() {
+	var data = {}  // holds data we will send to server
+	  , m    = {}  // holds data/variables for this module (not sent to server)
+
+  init();
+
+  function init() {
+	  // the layout of the two images
+	  var layout = 'left-right' // "left-right" or "top-bottom"
+	    , tableStructure = [["vis-left" , "vis-right"],
+	                        ["left-button" , "right-button"],
+	                        ["ans-left", "ans-right"],
+	                        ["slt-left", "slt-right"],
+	                        ["feedback-left", "feedback-right"]] // the id of the frame table 
+	    , trialTextLR = " You can either click the buttons (A or B) or use the ◀ or ▶ keys." // instruction for left-right layout 
+      , trialTextTB = " You can either click the buttons (A or B) or use the ▲ or ▼ keys." // instruction for top-bottom layout  
+      , keyCodeLR = {"left" : 37 , "right" : 39} // control key code for left-right
+      , keyCodeTB = {"left" : 38 , "right" : 40};// control key code for top-bottom
+    // set direction for entire experiment
+    m.rdirection = data.rdirection = 'positive'; // negative, positive
+    // set visualization type for entire experiment
+    m.visualizationType = data.visualizationType = "scatterplot"; // scatterplot, parallelCoordinates, stacked, line, ordered_line
+    // set sign (used to control visualizations/text)
+    m.sign = m.rdirection === 'negative' ? -1 : 1;
+    // extra console.logs for convenience
+    m.debug = false;
+    
+    // set layout either left-right or top-bottom
+    m.layout = data.layout = layout;
+    // set structure of the vis-ans-feedback frame, use transposition 
+    m.tableStructure = data.tableStructure = layout === 'top-bottom' ? gen.trans(tableStructure) : tableStructure;
+    m.align = data.align = (layout === 'top-bottom' ? "left" : "center");
+    // the instruction for keys that subjects can hit
+    m.trialText = data.trialText = (layout === 'top-bottom' ? trialTextTB : trialTextLR);
+    m.keyCode = data.keyCode = (layout === 'top-bottom' ? keyCodeTB : keyCodeLR);
+    
+    // start experiment module timer
+    experimentr.startTimer('training');
+    // add N/N.length to top of page
+    d3.select('#status').text(experimentr.status());
+    // enable nextButton after a few seconds (force participants to read!)
+    experimentr.attachTimer(null, 0, function() {
+      experimentr.release();
+    });
+    // end timer and add data when user clicks next
+    experimentr.onNext(function() {
+      experimentr.endTimer('training');
+      experimentr.addData(data);
+    });
+    // adapt training text based on positive/negative
+    adaptText();
+    // build visualizations
+    display();
+  }
+
+  function adaptText() {
+    // text to be displayed
+    var rdescription = "";
+    // text changes based on visualization type and sign
+    switch (m.visualizationType) {
+      case "scatterplot":
+
+        rdescription = "Notice that visually, correlation corresponds to how much "
+          + "the points deviate from a line that starts in the "
+          + (m.sign > 0 ? "bottom left" : "top left") 
+          +" and ends in the "+ (m.sign > 0 ? "top right" : "bottom right") 
+          +" (r = 1 is an example of the largest correlation.)";
+          break;
+
+      case "parallelCoordinates":
+
+        rdescription = "Notice that visually, correlation corresponds to how much "
+          + "the lines appear parallel versus mixed/crossed. Be sure to pay "
+          + "attention to the entire set of lines (not just the top or bottom). "
+          + "r = 1 is an example of the largest correlation.";
+          break;
+
+      case "stackedbar":
+        
+        rdescription = "Notice that visually, correlation corresponds to how "
+          + "much each blue and orange bar seem have the same (versus opposite) value. r = 1 is "
+          + "an example of the largest correlation."
+          break;
+
+      case "stackedline":
+        
+        rdescription = "Notice that visually, correlation corresponds to how "
+          + "much each blue and orange line seem have the same (versus opposite) value. r = 1 is "
+          + "an example of the largest correlation."
+          break;
+
+      case "stackedarea":
+        
+        rdescription = "Notice that visually, correlation corresponds to how "
+          + "much each blue and orange line/area seem have the same (versus opposite) value. r = 1 is "
+          + "an example of the largest correlation."
+          break;
+
+      case "line":
+        
+        rdescription = "Notice that visually, correlation corresponds to how "
+          + "much the lines to move together versus separately. r = 1 is "
+          + "an example of the largest correlation."
+          break;
+
+      case "ordered_line":
+        
+        rdescription = "Notice that visually, correlation corresponds to how "
+          + "much the lines to move together versus separately. r = 1 is "
+          + "an example of the largest correlation."
+          break;
+
+      case "radar":
+        
+        rdescription = "Notice that visually, correlation corresponds to how "
+          + "much the lines to move together versus separately. r = 1 is "
+          + "an example of the largest correlation."
+          break;
+
+      case "donut":
+        
+        rdescription = "Notice that visually, correlation corresponds to how "
+          + "much each blue and orange bar seem have the same (versus opposite) value. r = 1 is "
+          + "an example of the largest correlation."
+          break;
+
+    }
+    // append text to DOM
+    d3.select('#rdescription').text(rdescription);
+  }
+
+  function display() {
+    // array for table of visualizations
+	  var array = [[m.sign*1.0, m.sign*0.5],
+	               [m.sign*0.9, m.sign*0.4], 
+	               [m.sign*0.8, m.sign*0.3],
+	               [m.sign*0.7, m.sign*0.2], 
+	               [m.sign*0.6, m.sign*0.1]]
+         , extent = 100;
+    // transpose array before visualizing
+	  array = gen.trans(array);
+    // add table
+	var table = d3.select("#examples")
+	    .append("table")
+	    .attr('align', 'center');
+    // add table body
+    var tbody = table.append("tbody");
+    // create a row for each object in the data
+    var rows = tbody.selectAll("tr")
+      .data(array)
+      .enter().append("tr");
+    // create a cell in each row for each column
+    var cells = rows.selectAll("td")
+      .data(function(d) { return d; })
+      .enter().append("td")
+        .attr('id', function(d) { return 'c-' + d * 10; })
+        .attr('height', Math.round(extent * 1.5) +'px')
+        .attr('align', 'center')
+        .html(function(d) { return 'r = '+ Math.abs(d) + '<br>'; })
+        .each(buildvis);
+    // build visualization for each r value
+    function buildvis() {
+      var r = d3.select(this).data()[0]
+        , datam = gen.getCorrelatedData({r: r, n: 100, extent: extent })
+        , params = {
+            data: gen.dataviz(datam), 
+            extent: extent, 
+            target: "c-" + r * 10, 
+            pSize: 1, 
+            strokeSize: 2, 
+            margins: 20, 
+            alpha: .2, 
+            r: r
+        }    
+      // call visualization method based on visualization type
+      switch(m.visualizationType) {
+        case "scatterplot":
+          vismethods.getScatterPlot(params); break;
+        case "scatterplot_lines":
+        	params.showline = 'true';
+            vismethods.getScatterPlot(params); break;
+        case "parallelCoordinates":
+          vismethods.getParaCoord(params); break;
+        case "stackedbar":
+          params.order = 0;
+          params.stack = 'stacked'; // 0 : regular ; 1 : stacked ; 2 : percentage ; 3 :stem ; 4 : showline
+          params.alpha = 0.9;
+          vismethods.getBarChart(params); break;
+        case "stackedline":
+          params.order = 0;
+          params.stack = 'stacked';
+          params.alpha = 0.9;
+          vismethods.getLineChart(params); break;
+        case "stackedarea":
+          params.order = 0;
+          params.stack = 'stacked';
+          params.alpha = 0.9;
+          params.filled = 'true';
+          vismethods.getLineChart(params); break;
+        case "line":
+          params.stack = 'regular';
+          params.order = 0;
+          params.alpha = 0.9;
+          vismethods.getLineChart(params); break;
+        case "ordered_line":
+          params.stack = 'regular';
+          params.order = 1;
+          params.alpha = 0.9;
+          vismethods.getLineChart(params); break;
+        case "radar":
+          params.order = 0;
+          params.alpha = 0.9;
+          vismethods.getRadar(params); break;
+        case "radar_oneline":
+          params.oneline = 'true';
+          vismethods.getRadar(params); break;
+          params.oneline = 'true';
+          vismethods.getRadar(params); break;
+        case "donut":
+          params.order = 0;
+          params.stack = 'regular';
+          vismethods.getDonut(params); break;
+        default :
+          vismethods.getBarChart(params); 
+      }
+    }  
+  }
+}());
+</script>

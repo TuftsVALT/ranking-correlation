@@ -1,0 +1,16 @@
+{
+  "name": "experimentr",
+  "description": "captures input for data visualization studies",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "express": "3.x",
+    "csv": "0.2.x",
+    "json2csv": "2.x",
+    "redis": "0.8.x",
+    "underscore": "~1.5.1"
+  },
+  "scripts": {
+    "start": "node app.js"
+  }
+}
