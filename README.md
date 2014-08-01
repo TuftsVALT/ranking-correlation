@@ -1,18 +1,14 @@
-ranking-correlation
+Ranking Visualizations of Correlation Using Weber's Law
 ===================
 
-Data and code for the studies in "Ranking Visualizations of Correlation Using Weber's Law" 
+This repo contains the experiment data and code from our InfoVis '14 paper. 
 
-# data #
-We released master.csv. Each record represents one single trial. There are 8 columns in this file,
-- participant, the id of each participant
-- vis, the name of the visualization in this trial
-- rdirection, whether it is negatively correlated  or positively correlated data
-- sign, the number format of rdirection
-- visandsign, a combination of vis and sign column
-- rbase, the target r in this trial
-- approach
-- ind, the result jnd
+data
+---
 
-# r files #
-We released all r files for analytics. Please refer to the header of each r file.
+The raw data from our experiment and an overall ranking for the visualizations tested is in the [data](data) folder.
+
+analysis scripts
+---
+
+The R files we used to compute statistics and produce figures are in the [rfiles](rfiles) folder.
