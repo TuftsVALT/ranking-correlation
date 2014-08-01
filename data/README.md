@@ -18,4 +18,4 @@ jnd: the resulting perceptual distance
 
 # rankdata.csv
 
-This file corresponds to [Figure 7](docs/img/ranking.png) in our paper, which shows an overall ranking for the visualizations tested. 
+This file corresponds to [Figure 7](../docs/img/ranking.png) in our paper, which shows an overall ranking for the visualizations tested. 
