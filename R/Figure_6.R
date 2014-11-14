@@ -5,7 +5,7 @@
 ##################################################################
 
 # change this path for need
-pdf("rfiles/Figure_6.pdf", height = 7, width = 7)
+pdf("Figure_6.pdf", height = 7, width = 7)
 
 ######################functions and parameters#########################
 

@@ -13,7 +13,7 @@
 ######################################################################################
 
 # change this path for need
-pdf("rfiles/Figure_5.pdf", height = 2.5, width = 11.5)
+pdf("Figure_5.pdf", height = 2.5, width = 11.5)
 
 # change this path for need
 data <- read.csv("data/master.csv", header = T)
