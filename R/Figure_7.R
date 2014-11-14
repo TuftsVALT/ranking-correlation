@@ -1,155 +1,67 @@
+library(tidyr)
+library(dplyr)
+
 ############################################################
 # This is an .R file to compute and plot the final ranking
 ############################################################
-pdf("Figure_7.pdf", height = 6, width = 8)
+# pdf("Figure_7.pdf", height = 6, width = 8)
 
-# change this path for need
-data <- read.csv("data/rankdata.csv", header = T)
+# First tidy the data
+raw <- read.csv("data/rankdata.csv", stringsAsFactor = FALSE)
+names(raw) <- paste(rep(c(1, 3, 5, 7, 9, "overall"), each = 3), c("id", "vis", "x"), sep = "_")
+raw$rank <- 1:nrow(raw)
 
-#################### parameter define #################
-colors1 <- c(
-"#bc80bd",
-"#ffffb3",
-"#ccebc5",
-"#bebada",
-"#fb8072",
-"#80b1d3",
-"#fdb462",
-"#b3de69",
-"#fccde5",
-"#d9d9d9",
-"#ffed6f")
+ranks <- raw %>% 
+  tbl_df() %>%
+  gather(key, value, -rank) %>%
+  separate(key, c("cor", "var"), "_") %>%
+  spread(var, value, convert = TRUE) %>%
+  select(rank, vis, cor, x) %>%
+  arrange(cor, vis)
 
-colors <- c(
-"#8dd3c7",
-"#ffffb3",
-"#bebada",
-"#fb8072",
-"#80b1d3",
-"#fdb462",
-"#b3de69",
-"#fccde5",
-"#d9d9d9",
-"#bc80bd",
-"#ccebc5",
-"#ffed6f")
+# Use factors so integer values give position
+ranks <- mutate(ranks, 
+  cor = factor(cor, 
+    labels = c("r = 0.1", "r = 0.3", "r = 0.5", "r = 0.7", "r = 0.9", "Overall")
+  ),
+  vis = factor(vis)
+)
 
-plot(-1, 1, xlim = c(0, 18), ylim = c(0, 18))
-flag = 1
-lwdFrame = 0.5
-lwdLines  = 15
-width <- length(data) + 1
-height <- length(data$id1) + 1
-fontSize <- 0.6
-drawLayer <- 2 # control the layer of the frame
+# Set default colour palette for vis type
+palette(c("#8dd3c7", "#ffffb3", "#bebada", "#fb8072", "#80b1d3", "#fdb462",
+  "#b3de69", "#fccde5", "#d9d9d9", "#bc80bd", "#ccebc5", "#ffed6f"))
 
-################## run ###################
+# par(mar = c(0, 0, 0, 0))
+ncol <- length(levels(ranks$cor))
+nrow <- length(levels(ranks$vis)) + 1
+plot(c(0, ncol + 0.5), c(0.5, nrow + 0.5), type = "n", 
+  xlab = "", ylab = "", xaxs = "i", yaxs = "i")
 
-if(drawLayer == 1){
-    # draw frame |||||
-    for(i in 1: width){
-    	if(i %% 3 == 1){
-	       segments(x0 = i - 0.5, y0 = 0.5, x1 = i - 0.5, y1 = height + 0.5, lwd = lwdFrame)	
-     	}			
-    }
+# Draw table grid lines and column headers
+abline(v = 1:ncol - 0.5)
+abline(h = 1:nrow - 0.5)
+text(1:ncol, nrow, levels(ranks$cor))
 
-
-    # draw frame =
-    for(j in 1: height){
-	    segments(x0 = 0.5, y0 = j - .5, x1 = width - 0.5, y1 = j - .5, lwd = lwdFrame)			
-     }
-
-    # draw top line
-    segments(x0 = 0.5, y0 = height + 0.5, x1 = width - 0.5, y1 = height + 0.5, lwd = lwdFrame)	
-} # end of layer = 1 option
-
-# draw the title
-titles <- names(data)
-for(i in 1:length(titles)){
-    if(i%%3 == 2){
-    	  string <- titles[i + 1]
-    	  if(substr(string, 1,1) == "X")
-    	     if(i == 2 || i == 14)
-    	         string = paste("r =", substr(string, 2, 4), "*")
-    	     else
-    	         string = paste("r =", substr(string, 2, 4))
-    	  text( x =   i ,
-	            y =  height,
-	            labels = string,
-	            cex = fontSize)	
-    }
-
+# Comute path of each segment
+draw_path <- function(df) {
+  n <- nrow(df)
+  
+  x <- c(0.5, as.numeric(df$cor), ncol - 0.5)
+  y <- as.numeric(df$rank[c(1, 1:n, n)])
+  lines(x, y, col = df$vis, lwd = 20, lend = 1, ljoin = "mitre")  
 }
+ranks %>% 
+  group_by(vis) %>%
+  filter(cor != "overall") %>%
+  do(`_` = draw_path(.))
 
-# compute lines
-for(i in 1:length(data)){
-	for(j in 1:length(data$id1)){
-		if(i %% 3 == 2){
-	  	    if(flag == 1){
-	        	storeGrig <- c(i, j , data[[i - 1]][j])
-	        	flag = 2
-	        } else {
-	        	cell <- c(i, j , data[[i - 1]][j])
-	        	storeGrig <- rbind(storeGrig, cell)
-	        }
-	    }
-				
-	}
-}
+# Add text labels
+text(as.numeric(ranks$cor), as.numeric(ranks$rank), ranks$vis, cex = 0.5)
 
+# Draw ranking arrow
+arrows(x0 = 0.25, y0 = 0.5, x = 0.25, y = nrow, length = 0.05, angle = 25,
+       code = 2)       
+text(x = 0.1, y = nrow / 2, srt= 90, labels = "better", cex = 0.5)  
 
-# draw lines
-for(k in 1:length(data$id1)){
-	subdata <- subset(storeGrig, storeGrig[,3] == k)
-	subPoints <- data.frame(subdata[,1], height - subdata[,2])
-	subPoints <- rbind(c(1 - 0.15, height - subdata[,2][1]), subPoints, c(width - 0.85, height - subdata[,2][length(subdata[,2])] ))
-    
-    mainSet <- rbind (subPoints[1:6,], c(subPoints[6,][,1] + 1.15, subPoints[6,][,2]))
-    extraSet <- rbind (c(subPoints[7,][,1] - 1.15, subPoints[7,][,2]), c(subPoints[7,][,1] + 1.15, subPoints[7,][,2]))
-    
-    lines(mainSet, col = colors[k], ljoin = "bevel", lend = "square", lwd = lwdLines)
-    lines(extraSet, col = colors[k], ljoin = "bevel", lend = "square", lwd = lwdLines)
-
-}
-
-if(drawLayer == 2){
-    # draw frame |||||
-    for(i in 1: width){
-	    if(i %% 3 == 1){
-	       segments(x0 = i - 0.5, y0 = 0.5, x1 = i - 0.5, y1 = height + 0.5, lwd = lwdFrame)	
-	    }			
-    }
-
-
-    # draw frame =
-    for(j in 1: height){
-	     segments(x0 = 0.5, y0 = j - .5, x1 = width - 0.5, y1 = j - .5, lwd = lwdFrame)			
-    }
-
-    # draw top line
-    segments(x0 = 0.5, y0 = height + 0.5, x1 = width - 0.5, y1 = height + 0.5, lwd = lwdFrame)	
-
-} # end of the option layer = 2
-
-# draw texts
-for(i in 1:length(data)){
-	for(j in 1:length(data$id1)){
-		if(i %% 3 == 2){
-	        text( x =  i,
-	              y = height - j,
-	              labels = data[[i]][j],
-	              cex = fontSize,
-	              lwd = 0.6 
-	        )
-	     }
-				
-	}
-}
-
-arrows(x0 = 0.15, y0 = 0.5, x = 0.15, y = height, length = 0.05, angle = 25,
-       code = 2)
-       
-text(x = -0.03, y = height / 2, srt= 90, labels = "better", cex = fontSize )     
-
-dev.off()
+# dev.off()
 
