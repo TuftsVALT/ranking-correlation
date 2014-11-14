@@ -13,7 +13,7 @@ The raw data from our experiment and an overall ranking for the visualizations t
 Analysis
 ---
 
-The R files we used to compute statistics and produce figures are in the [rfiles](rfiles) folder.
+The R files we used to compute statistics and produce figures are in the [R](R/) folder.
 
 Experiment
 ---
