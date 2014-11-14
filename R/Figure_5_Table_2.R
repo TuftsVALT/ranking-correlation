@@ -11,15 +11,12 @@
 #                  line, ordered-line 
 # !!Warning, the code blocks are order sensitive.
 ######################################################################################
-# clear previous commands
-rm(list = ls())
 
 # change this path for need
-pdf("Documents/R/JND/RS/Figure_5.pdf", height = 2.5, width = 11.5)
-
+pdf("rfiles/Figure_5.pdf", height = 2.5, width = 11.5)
 
 # change this path for need
-data <- read.csv("Documents/R/JND/master.csv", header = T)
+data <- read.csv("data/master.csv", header = T)
 
 ################# functions, parameters and variables ###############
 
@@ -50,7 +47,6 @@ colors2 <- c(
 
 
 colors <- colors2[9:1]
-"darkred","hotpink","red","olivedrab","chartreuse3","black","gray60","blue","deepskyblue")
 
 # define legend texts
 visAll <- c(visLevels, "scatterplot, 2010","","positive","negative")

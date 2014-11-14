@@ -4,15 +4,13 @@
 # show above and below, positive and negative separately
 #################################################################################
 # clear previous commands
-rm(list = ls())
 
 # change this path for need
-pdf("Documents/R/JND/RS/Figure_4.pdf", width = 10, height = 13)
-
+pdf("rfiles/Figure_4.pdf", width = 10, height = 13)
 
 ################ parameters and functions ################
 # change this path for need
-data <- read.csv("Documents/R/JND/master.csv", header = T)
+data <- read.csv("data/master.csv", header = T)
 
 visLevels <- c("scatterplot","parallelCoordinates","stackedarea","stackedline",
               "stackedbar", "donut", "line","radar","ordered_line")
