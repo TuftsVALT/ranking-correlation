@@ -1,11 +1,10 @@
 ############################################################
 # This is an .R file to compute and plot the final ranking
 ############################################################
-# change this path for need
-pdf("Documents/R/JND/RS/Figure_7.pdf", height = 6, width = 8)
+pdf("rfiles/Figure_7.pdf", height = 6, width = 8)
 
 # change this path for need
-data <- read.csv("Documents/R/JND/rankdata.csv", header = T)
+data <- read.csv("data/rankdata.csv", header = T)
 
 #################### parameter define #################
 colors1 <- c(

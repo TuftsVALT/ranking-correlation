@@ -9,8 +9,6 @@
 #                      +line, +radar      
 #                      +/- line, +/- orderedline                                              
 ###############################################################################################
-# clear previous commands
-rm(list = ls())
 
 ################## function define ##################
 filter <- function(medians, mads, dataset){	
@@ -83,7 +81,7 @@ loop <- function(data, visarr, directionarr){
 		
 ##################### run #####################
 # change this path for need
-data <- read.csv("Documents/R/JND/master.csv", header = T)         
+data <- read.csv("data/master.csv", header = T)         
 krusalResults <- kruskal.test(jnd ~ visandsign, data)
 
 print("-----------------------------------")

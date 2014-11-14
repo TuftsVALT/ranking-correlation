@@ -3,15 +3,13 @@
 # This is a r file to do put all regression results in one figure. 
 # (+ Rensink's regression)
 ##################################################################
-# clear previous commands
-rm(list = ls())
 
 # change this path for need
-pdf("Documents/R/JND/RS/Figure_6.pdf", height = 7, width = 7)
+pdf("rfiles/Figure_6.pdf", height = 7, width = 7)
 
 ######################functions and parameters#########################
 
-data <- read.csv("Documents/R/JND/master.csv", header = T)
+data <- read.csv("data/master.csv", header = T)
 
 plot1 <- c(F)
 plot2 <- c(F)
