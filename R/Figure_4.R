@@ -6,7 +6,7 @@
 # clear previous commands
 
 # change this path for need
-pdf("rfiles/Figure_4.pdf", width = 10, height = 13)
+pdf("Figure_4.pdf", width = 10, height = 13)
 
 ################ parameters and functions ################
 # change this path for need

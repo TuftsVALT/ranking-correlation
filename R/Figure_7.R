@@ -1,7 +1,7 @@
 ############################################################
 # This is an .R file to compute and plot the final ranking
 ############################################################
-pdf("rfiles/Figure_7.pdf", height = 6, width = 8)
+pdf("Figure_7.pdf", height = 6, width = 8)
 
 # change this path for need
 data <- read.csv("data/rankdata.csv", header = T)
