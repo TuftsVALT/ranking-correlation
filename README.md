@@ -19,3 +19,13 @@ Experiment
 ---
 
 The code for reproducing our web-based experiment is in the [experiment](experiment) folder.
+
+
+Bibtex
+---
+@article{harrison2014ranking,
+  title = {Ranking Visualizations of Correlation using Weber's Law},
+  author = {Lane Harrison AND Fumeng Yang AND Steven Franconeri AND Remco Chang},
+  journal = {IEEE Conference on Information Visualization (InfoVis)},
+  year = {2014}
+}
