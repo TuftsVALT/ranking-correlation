@@ -16,7 +16,7 @@ correctChoice: R or L, which chart is correct
 currentChoice: R or L, which chart the participant picked
 gotItRight: if the participant picked the correct one
 index: the judgment index in [0, 49]
-jnd: the resulting perceptual distance (this was parsed at the end it is along with each jugdment)
+jnd: the resulting perceptual distance (this was parsed at the end so it is along with each jugdment)
 participant: participant id string
 vis: visualization condition  
 rdirection: positive or negative correlation
