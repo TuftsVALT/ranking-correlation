@@ -3,8 +3,8 @@
 # all_judgments.csv (jugdment-based data)
 
 Each record represents a single judgment: left or right choice. 
-Various jugdments were finished within a trial due to the use of staircase method.
-These data were NOT used in the paper  .
+Various numbers of jugdments (24 ~ 50) were finished within a trial due to the use of the staircase method. 
+These data were NOT used in the paper.
 
 The columns in this file are:
 
