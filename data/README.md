@@ -1,6 +1,6 @@
 
 
-# all_judgments.csv (jugdment-based data)
+# all_judgments.csv (judgment-based data)
 
 Each record represents a single judgment: left or right choice. 
 Various numbers of jugdments (24 ~ 50) were finished within a trial due to the use of the staircase method. 
@@ -16,7 +16,7 @@ correctChoice: R or L, which chart is correct
 currentChoice: R or L, which chart the participant picked
 gotItRight: if the participant picked the correct one
 index: the judgment index in [0, 49]
-jnd: the resulting perceptual distance (this was parsed at the end so it is along with each jugdment)
+jnd: the resulting perceptual distance (this was parsed at the end so it is along with each judgment)
 participant: participant id string
 vis: visualization condition  
 rdirection: positive or negative correlation
