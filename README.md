@@ -21,6 +21,17 @@ Experiment
 The code for reproducing our web-based experiment is in the [experiment](experiment) folder.
 
 
+License
+---
+
+Data in the [data](data) folder is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); see [data/LICENSE](data/LICENSE).
+
+Code in the [R](R/) and [experiment](experiment) folders is licensed under the [BSD 3-Clause License](LICENSE). Third-party libraries bundled in `experiment/public/components` and `experiment/node_modules` keep their own licenses.
+
+The paper and slides in the [docs](docs) folder are not covered by these licenses; copyright belongs to their respective holders (IEEE for the published paper).
+
+If you use the data or code, please cite the paper below.
+
 Bibtex
 ---
 @article{harrison2014ranking,   
